@@ -1,12 +1,15 @@
 import streamlit as st
 import pandas as pd
 import gspread
+import json
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Google Sheets Setup
+# Streamlit Cloud నుండి Secrets ని రీడ్ చేయడం
+creds_dict = json.loads(st.secrets["GSPREAD_JSON"])
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-creds = ServiceAccountCredentials.from_json_keyfile_name('service_account.json', scope)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
+
 sheet_id = '1h5sYj5zpUPZj62qaVrnQsjmeI1ozLXILenHwyihpakU'
 sheet = client.open_by_key(sheet_id).sheet1
 
@@ -30,7 +33,6 @@ with tab1:
             df = df[mask]
         
         for index, row in df.iterrows():
-            # స్టేటస్ ని బట్టి కలర్ కోడింగ్ (Available అయితే గ్రీన్, Sold అయితే రెడ్)
             status_color = "🟢" if row.get('Status', 'Available') == 'Available' else "🔴"
             with st.container(border=True):
                 st.write(f"### {row['Property Name']} {status_color}")
@@ -40,8 +42,6 @@ with tab1:
                 col1, col2, col3 = st.columns(3)
                 if row['Media Link']: col1.link_button("📸 Photos", row['Media Link'], use_container_width=True)
                 if row['Map Link']: col2.link_button("📍 Map", row['Map Link'], use_container_width=True)
-                
-                # WhatsApp బటన్ (నేరుగా నెంబర్ కి మెసేజ్)
                 if row['Phone Number']:
                     wa_link = f"https://wa.me/91{row['Phone Number']}"
                     col3.link_button("💬 WhatsApp", wa_link, use_container_width=True)
@@ -60,10 +60,9 @@ with tab2:
         phone = st.text_input("Phone Number")
         media_link = st.text_input("Google Drive Folder Link")
         map_link = st.text_input("Google Maps Link")
-        status = st.selectbox("Status", ["Available", "Sold"]) # స్టేటస్ సెలెక్ట్ చేయడానికి
+        status = st.selectbox("Status", ["Available", "Sold"])
         
         submit = st.form_submit_button("Submit Property", use_container_width=True)
         if submit:
-            # కాలమ్స్ ఆర్డర్: Name, Price, Facing, Location, Owner, Phone, Media, Map, Status
             sheet.append_row([prop_title, price, facing, location, owner, phone, media_link, map_link, status])
             st.success("Property added successfully!")
