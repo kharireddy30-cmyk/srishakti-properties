@@ -1,0 +1,1 @@
+# srishakti-properties
