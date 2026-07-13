@@ -1,15 +1,27 @@
 import streamlit as st
 import pandas as pd
 import gspread
-import json
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Streamlit Cloud నుండి Secrets ని రీడ్ చేయడం
-creds_dict = json.loads(st.secrets["GSPREAD_JSON"])
+# Streamlit Secrets నుండి వివరాలను డిక్షనరీగా క్రియేట్ చేయడం
+# ఇది ఫైల్ తో సంబంధం లేకుండా నేరుగా పనిచేస్తుంది
+creds_dict = {
+    "type": st.secrets["TYPE"],
+    "project_id": st.secrets["PROJECT_ID"],
+    "private_key_id": st.secrets["PRIVATE_KEY_ID"],
+    "private_key": st.secrets["PRIVATE_KEY"].replace("\\n", "\n"),
+    "client_email": st.secrets["CLIENT_EMAIL"],
+    "client_id": st.secrets["CLIENT_ID"],
+    "auth_uri": st.secrets["AUTH_URI"],
+    "token_uri": st.secrets["TOKEN_URI"],
+    "auth_provider_x509_cert_url": st.secrets["AUTH_PROVIDER_X509_CERT_URL"],
+    "client_x509_cert_url": st.secrets["CLIENT_X509_CERT_URL"]
+}
+
+# Google Sheets Setup
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
-
 sheet_id = '1h5sYj5zpUPZj62qaVrnQsjmeI1ozLXILenHwyihpakU'
 sheet = client.open_by_key(sheet_id).sheet1
 
