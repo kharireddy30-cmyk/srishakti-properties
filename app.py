@@ -36,17 +36,30 @@ with tab1:
     st.subheader("Available Properties")
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
-    for index, row in df.iterrows():
-        with st.container(border=True):
-            st.write(f"### {row['Property Name']} ({row['Measurements']})")
-            st.write(f"💰 Price: {row['Price']} | 🧭 Facing: {row['Facing']}")
-            st.write(f"📍 Address: {row['Address']}")
-            st.write(f"👤 Contact: {row['Contact Person']} ({row['Role']})")
-            
-            col1, col2, col3 = st.columns(3)
-            if row.get('Media Link'): col1.link_button("📸 Photos", row['Media Link'], use_container_width=True)
-            if row.get('Map Link'): col2.link_button("📍 Map", row['Map Link'], use_container_width=True)
-            if row.get('Phone Number'): col3.link_button("💬 WhatsApp", f"https://wa.me/91{row['Phone Number']}", use_container_width=True)
+    
+    # సెర్చ్ బార్
+    search_query = st.text_input("🔍 సెర్చ్ చేయండి (పేరు, లొకేషన్, ఫోన్ నెంబర్, మొదలైనవి...)", "")
+    
+    if search_query:
+        mask = df.apply(lambda row: row.astype(str).str.contains(search_query, case=False).any(), axis=1)
+        filtered_df = df[mask]
+    else:
+        filtered_df = df
+        
+    if not filtered_df.empty:
+        for index, row in filtered_df.iterrows():
+            with st.container(border=True):
+                st.write(f"### {row['Property Name']} ({row['Measurements']})")
+                st.write(f"💰 ధర: {row['Price']} | 🧭 ఫేసింగ్: {row['Facing']}")
+                st.write(f"📍 అడ్రస్: {row['Address']}")
+                st.write(f"👤 కాంటాక్ట్: {row['Contact Person']} ({row['Role']}) - {row['Phone Number']}")
+                
+                col1, col2, col3 = st.columns(3)
+                if row.get('Media Link'): col1.link_button("📸 Photos", row['Media Link'], use_container_width=True)
+                if row.get('Map Link'): col2.link_button("📍 Map", row['Map Link'], use_container_width=True)
+                if row.get('Phone Number'): col3.link_button("💬 WhatsApp", f"https://wa.me/91{row['Phone Number']}", use_container_width=True)
+    else:
+        st.info("క్షమించండి, మీరు వెతుకుతున్న ప్రాపర్టీ ఏదీ కనుగొనబడలేదు.")
 
 # --- SELLER SECTION ---
 with tab2:
@@ -54,12 +67,11 @@ with tab2:
     with st.form("sell_form", clear_on_submit=True):
         cat = st.selectbox("Property Category", list(property_options.keys()))
         
-        # అన్ని టైప్స్ ని ఒకే లిస్టులోకి మార్చడం
         all_types = []
         for types in property_options.values():
             all_types.extend(types)
             
-        ptype = st.selectbox("Select Property Type (అన్ని ఆప్షన్లు ఇక్కడ ఉన్నాయి)", all_types)
+        ptype = st.selectbox("Select Property Type", all_types)
         prop_title = st.text_input("Property Name")
         
         c1, c2 = st.columns(2)
