@@ -27,9 +27,11 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 sheet = client.open_by_key('1h5sYj5zpUPZj62qaVrnQsjmeI1ozLXILenHwyihpakU').sheet1
 
-st.set_page_config(page_title="Sri Shakti Marketplace", layout="centered")
-st.title("🕉️ Sri Shakti Consultancy")
-tab1, tab2 = st.tabs(["🏡 Buy Property", "➕ Post Property"])
+st.set_page_config(page_title="Sri Shakti Properties", layout="centered")
+st.title("🕉️ Sri Shakti Properties") # మార్పు: హెడ్ లైన్ మారింది
+
+# మార్పు: ట్యాబ్స్ పేర్లు మార్చడం & కొత్త Contact ట్యాబ్
+tab1, tab2, tab3 = st.tabs(["👤 Buyer", "🏠 Seller", "📞 Contact"])
 
 # --- BUYER SECTION ---
 with tab1:
@@ -37,7 +39,6 @@ with tab1:
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
     
-    # సెర్చ్ బార్
     search_query = st.text_input("🔍 సెర్చ్ చేయండి (పేరు, లొకేషన్, ఫోన్ నెంబర్, మొదలైనవి...)", "")
     
     if search_query:
@@ -66,18 +67,14 @@ with tab2:
     st.subheader("Post Your Property")
     with st.form("sell_form", clear_on_submit=True):
         cat = st.selectbox("Property Category", list(property_options.keys()))
-        
         all_types = []
         for types in property_options.values():
             all_types.extend(types)
-            
         ptype = st.selectbox("Select Property Type", all_types)
         prop_title = st.text_input("Property Name")
-        
         c1, c2 = st.columns(2)
         mval = c1.text_input("Measurement Value")
         munit = c2.selectbox("Unit", ["Acres", "Cents", "Square Yards", "Square Feet"])
-        
         price = st.text_input("Price")
         facing = st.selectbox("Facing", ["East", "West", "North", "South"])
         addr = st.text_area("Address")
@@ -92,3 +89,13 @@ with tab2:
             full_meas = f"{mval} {munit}"
             sheet.append_row([cat, ptype, prop_title, full_meas, price, facing, addr, cp, role, phone, mlink, maplink, status])
             st.success("Property added successfully!")
+
+# --- CONTACT SECTION ---
+with tab3:
+    st.subheader("Contact Details")
+    st.write("మా సేవలు లేదా మరిన్ని వివరాల కోసం మమ్మల్ని సంప్రదించండి:")
+    st.markdown("""
+    **శ్రీ శక్తి ప్రాపర్టీస్**  
+    📞 ఫోన్: 9160103127  
+    📍 కార్యాలయం: నెల్లూరు, ఆంధ్రప్రదేశ్.  
+    """)
